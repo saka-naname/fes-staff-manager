@@ -1,0 +1,14 @@
+build
+coverage
+package-lock.json
+
+.env*
+
+*.md
+
+/.next/
+/out/
+
+/build
+
+/.yarn/

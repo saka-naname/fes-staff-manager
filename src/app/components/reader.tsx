@@ -10,6 +10,7 @@ import {
   TabPanels,
   Tabs,
   Text,
+  createStandaloneToast,
 } from "@chakra-ui/react";
 
 import { NFCDevice } from "@/lib/device";
@@ -42,32 +43,37 @@ const getNFCDeviceInstance = (productId: number): NFCDevice | null => {
   }
 };
 
+const { ToastContainer, toast } = createStandaloneToast();
+
 export const StudentCardReader = () => {
   const [tabIndex, setTabIndex] = useState(TABS_INDEX.Uninitialized);
 
   return (
-    <Box minHeight="calc(100vh)" position="relative">
-      <AbsoluteCenter axis="both">
-        <Tabs index={tabIndex}>
-          <TabPanels>
-            <TabPanel>
-              <Button
-                onClick={async () => {
-                  const device = await connect();
-                  setTabIndex(TABS_INDEX.Initialized);
-                  await session(device);
-                }}
-              >
-                Connect
-              </Button>
-            </TabPanel>
-            <TabPanel>
-              <Text>Initialized!</Text>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-      </AbsoluteCenter>
-    </Box>
+    <>
+      <Box minHeight="calc(100vh)" position="relative">
+        <AbsoluteCenter axis="both">
+          <Tabs index={tabIndex}>
+            <TabPanels>
+              <TabPanel>
+                <Button
+                  onClick={async () => {
+                    const device = await connect();
+                    setTabIndex(TABS_INDEX.Initialized);
+                    await session(device);
+                  }}
+                >
+                  Connect
+                </Button>
+              </TabPanel>
+              <TabPanel>
+                <Text>Connected!</Text>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </AbsoluteCenter>
+      </Box>
+      <ToastContainer />
+    </>
   );
 };
 
@@ -118,6 +124,12 @@ const session = async (device: USBDevice) => {
       await nfcDevice.session(device).then((result) => {
         if (result.success) {
           console.log(result);
+          toast({
+            title: "学生証を読み取りました",
+            description: `学籍番号: ${result.studentCard?.studentId}`,
+            status: "success",
+            position: "top",
+          });
         }
       });
       await sleep(500);

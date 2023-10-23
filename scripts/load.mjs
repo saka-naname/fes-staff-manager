@@ -1,4 +1,4 @@
-import { select } from "@inquirer/prompts";
+import { select, confirm } from "@inquirer/prompts";
 import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
@@ -178,3 +178,19 @@ const englishOkKey = await select({
   }),
   loop: false,
 });
+
+console.log("Preview:");
+console.table({
+  "Student ID": parseStudentId(csvData[0][studentIdKey], studentIdMode),
+  Year: csvData[0][yearKey],
+  Name: csvData[0][nameKey],
+  Group: csvData[0][groupKey],
+  "English OK": !!csvData[0][englishOkKey],
+});
+
+if (await confirm({ message: "Is this OK?", default: true })) {
+  console.log("OK!");
+} else {
+  console.log("Cancelled.");
+  process.exit();
+}

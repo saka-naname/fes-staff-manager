@@ -384,3 +384,5 @@ for (let member of csvData) {
     });
 }
 spinner.succeed();
+
+console.log("Done!");

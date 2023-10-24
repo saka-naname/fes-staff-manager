@@ -3,13 +3,25 @@ import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
 import eaw from "eastasianwidth";
+import { PrismaClient, Prisma } from "@prisma/client";
+import ora from "ora";
 
-function getColumnSample(csvData, key) {
-  return arrayToSampleString(csvData.map((row) => row[key]));
+function getColumnSample(csvData, key, validated = undefined) {
+  if (validated == null) {
+    return arrayToSampleString(csvData.map((row) => row[key]));
+  }
+
+  return (
+    visualBool(validated) +
+    arrayToSampleString(
+      csvData.map((row) => row[key]),
+      9,
+    )
+  );
 }
 
-function arrayToSampleString(array) {
-  let maxLen = process.stdout.columns - 6;
+function arrayToSampleString(array, margin = 6) {
+  let maxLen = process.stdout.columns - margin;
   let sampleStr = array.join(", ");
   if (sampleStr.length > maxLen)
     sampleStr = eaw.slice(sampleStr, 0, maxLen) + "...";
@@ -17,9 +29,10 @@ function arrayToSampleString(array) {
 }
 
 const studentIdRegExp = /^([a-zA-Z]{2}[0-9]{5})$/;
+const strictStudentIdRegExp = /^([A-Z]{2}[0-9]{5})$/;
 const emailRegExp = /^([a-z]{2}[0-9]{5})@shibaura-it.ac.jp$/;
-const yearRegExp = /([0-9])/;
-const yearZenRegExp = /([０－９])/;
+const yearRegExp = /^[^a-zA-Z0-9]?([0-9]+)(th|ｔｈ|期|$)$/;
+const yearZenRegExp = /^[^a-zA-Z０-９]?([０-９]+)(th|ｔｈ|期|$)$/;
 
 function parseStudentId(str, mode) {
   switch (mode) {
@@ -54,6 +67,56 @@ function parseYear(str) {
       .replace(/[０-９]/g, (s) =>
         String.fromCharCode(s.charCodeAt(0) - 0xfee0),
       );
+}
+
+function validate(
+  array = [],
+  {
+    patterns = [],
+    rejectPatterns = [],
+    unique = false,
+    nonBlank = false,
+    nonNull = false,
+  },
+) {
+  if (array == []) {
+    return false;
+  }
+
+  if (
+    patterns.length > 0 &&
+    !patterns.some((pattern) => array.every((item) => pattern.test(item)))
+  ) {
+    return false;
+  }
+
+  if (
+    rejectPatterns.length > 0 &&
+    rejectPatterns.some((pattern) => array.every((item) => pattern.test(item)))
+  ) {
+    return false;
+  }
+
+  if (unique) {
+    let s = new Set(array);
+    if (s.size !== array.length) {
+      return false;
+    }
+  }
+
+  if (nonBlank && array.some((item) => item === "")) {
+    return false;
+  }
+
+  if (nonNull && array.some((item) => item == null)) {
+    return false;
+  }
+
+  return true;
+}
+
+function visualBool(bool) {
+  return bool ? "\u001b[32m✔ \u001b[0m" : "\u001b[31m✘ \u001b[0m";
 }
 
 console.log(`fes-staff-manager v${process.env.npm_package_version}`);
@@ -91,7 +154,17 @@ const studentIdKey = await select({
     return {
       name: key,
       value: key,
-      description: getColumnSample(csvData, key),
+      description: getColumnSample(
+        csvData,
+        key,
+        validate(
+          csvData.map((row) => row[key]),
+          {
+            patterns: [studentIdRegExp, emailRegExp],
+            nonBlank: true,
+          },
+        ),
+      ),
     };
   }),
   loop: false,
@@ -103,41 +176,80 @@ const studentIdMode = await select({
     {
       name: "Auto (Recommended)",
       value: "auto",
-      description: arrayToSampleString(
-        csvData.map((d) => parseStudentId(d[studentIdKey], "auto")),
-      ),
+      description: (function () {
+        let parsed = csvData.map((d) =>
+          parseStudentId(d[studentIdKey], "auto"),
+        );
+        let isValid = validate(parsed, {
+          patterns: [strictStudentIdRegExp],
+          nonBlank: true,
+        });
+        return visualBool(isValid) + arrayToSampleString(parsed, 9);
+      })(),
     },
     {
       name: "Student ID",
       value: "studentid",
-      description: arrayToSampleString(
-        csvData.map((d) => parseStudentId(d[studentIdKey], "studentid")),
-      ),
+      description: (function () {
+        let parsed = csvData.map((d) =>
+          parseStudentId(d[studentIdKey], "studentid"),
+        );
+        let isValid = validate(parsed, {
+          patterns: [strictStudentIdRegExp],
+          nonBlank: true,
+        });
+        return visualBool(isValid) + arrayToSampleString(parsed, 9);
+      })(),
     },
     {
       name: "Email",
       value: "email",
-      description: arrayToSampleString(
-        csvData.map((d) => parseStudentId(d[studentIdKey], "email")),
-      ),
+      description: (function () {
+        let parsed = csvData.map((d) =>
+          parseStudentId(d[studentIdKey], "email"),
+        );
+        let isValid = validate(parsed, {
+          patterns: [strictStudentIdRegExp],
+          nonBlank: true,
+        });
+        return visualBool(isValid) + arrayToSampleString(parsed, 9);
+      })(),
     },
     {
-      name: "Direct (Not recommended)",
+      name: "Direct (NOT recommended)",
       value: "direct",
-      description: arrayToSampleString(
-        csvData.map((d) => parseStudentId(d[studentIdKey], "direct")),
-      ),
+      description: (function () {
+        let parsed = csvData.map((d) =>
+          parseStudentId(d[studentIdKey], "direct"),
+        );
+        let isValid = validate(parsed, {
+          patterns: [strictStudentIdRegExp],
+          nonBlank: true,
+        });
+        return visualBool(isValid) + arrayToSampleString(parsed, 9);
+      })(),
     },
   ],
 });
 
 const yearKey = await select({
-  message: "Year key:",
+  message: "Year(th) key:",
   choices: Object.keys(csvData[0]).map((key) => {
     return {
       name: key,
       value: key,
-      description: getColumnSample(csvData, key),
+      description: getColumnSample(
+        csvData,
+        key,
+        validate(
+          csvData.map((row) => row[key]),
+          {
+            patterns: [yearRegExp, yearZenRegExp],
+            rejectPatterns: [studentIdRegExp],
+            nonBlank: true,
+          },
+        ),
+      ),
     };
   }),
   loop: false,
@@ -182,7 +294,7 @@ const englishOkKey = await select({
 console.log("Preview:");
 console.table({
   "Student ID": parseStudentId(csvData[0][studentIdKey], studentIdMode),
-  Year: csvData[0][yearKey],
+  "Year(th)": parseYear(csvData[0][yearKey]),
   Name: csvData[0][nameKey],
   Group: csvData[0][groupKey],
   "English OK": !!csvData[0][englishOkKey],
@@ -194,3 +306,22 @@ if (await confirm({ message: "Is this OK?", default: true })) {
   console.log("Cancelled.");
   process.exit();
 }
+
+const prisma = new PrismaClient();
+const spinner = ora();
+
+const groupsSet = new Set(
+  csvData.flatMap((row) =>
+    row[groupKey].split(",").map((group) => group.trim()),
+  ),
+);
+console.log(`${groupsSet.size} groups found:`);
+console.log(Array.from(groupsSet).join(", "));
+
+spinner.start("Clearing old records");
+await prisma.$transaction([
+  prisma.status.deleteMany(),
+  prisma.member.deleteMany(),
+  prisma.group.deleteMany(),
+]);
+spinner.succeed();

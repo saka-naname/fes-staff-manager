@@ -12,7 +12,7 @@ datasource db {
 
 model Group {
   id        Int       @id @default(autoincrement())
-  name      String
+  name      String    
   members   Member[]
 }
 
@@ -22,15 +22,15 @@ model Member {
   year      Int
   name      String
   groups    Group[]
-  stats     Status[]
+  stats     Status[]  
   englishOk Boolean
   createdAt DateTime  @default(now())
 }
 
 model Status {
   id        Int       @id @default(autoincrement())
-  member    Member    @relation(fields: [studentId], references: [studentId])
-  studentId String
+  member    Member    @relation(fields: [memberId], references: [id])
+  memberId  Int
   status    Int
   createdAt DateTime  @default(now())
 }

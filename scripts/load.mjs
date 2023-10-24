@@ -60,10 +60,10 @@ function parseStudentId(str, mode) {
 }
 
 function parseYear(str) {
-  if (yearRegExp.test(str)) return parseInt(str.match(yearRegExp));
+  if (yearRegExp.test(str)) return parseInt(str.match(yearRegExp)[1]);
   if (yearZenRegExp.test(str))
     return str
-      .match(yearZenRegExp)
+      .match(yearZenRegExp)[1]
       .replace(/[０-９]/g, (s) =>
         String.fromCharCode(s.charCodeAt(0) - 0xfee0),
       );
@@ -318,10 +318,69 @@ const groupsSet = new Set(
 console.log(`${groupsSet.size} groups found:`);
 console.log(Array.from(groupsSet).join(", "));
 
-spinner.start("Clearing old records");
+spinner.start("Deleting old records");
 await prisma.$transaction([
   prisma.status.deleteMany(),
   prisma.member.deleteMany(),
   prisma.group.deleteMany(),
 ]);
+spinner.succeed();
+
+spinner.start("Creating group table");
+for (let group of groupsSet) {
+  await prisma.group.create({
+    data: {
+      name: group,
+    },
+  });
+}
+spinner.succeed();
+
+spinner.start("Creating member table");
+for (let member of csvData) {
+  let studentId = parseStudentId(member[studentIdKey], studentIdMode);
+  let year = parseYear(member[yearKey]);
+  let name = member[nameKey];
+  let groups = {
+    connect: await prisma.group.findMany({
+      where: {
+        OR: member[groupKey].split(",").map((group) => {
+          return {
+            name: group.trim(),
+          };
+        }),
+      },
+    }),
+  };
+  let englishOk = !!member[englishOkKey];
+
+  await prisma.member
+    .create({
+      data: {
+        studentId: studentId,
+        year: year,
+        name: name,
+        groups: groups,
+        englishOk: englishOk,
+      },
+    })
+    .catch((err) => {
+      if (err.code !== "P2002") {
+        throw err;
+      }
+    })
+    .then(() => {
+      prisma.member.update({
+        where: {
+          studentId: studentId,
+        },
+        data: {
+          year: year,
+          name: name,
+          groups: groups,
+          englishOk: englishOk,
+        },
+      });
+    });
+}
 spinner.succeed();

@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
 import eaw from "eastasianwidth";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import ora from "ora";
 
 function getColumnSample(csvData, key, validated = undefined) {

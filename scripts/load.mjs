@@ -383,6 +383,4 @@ for (let member of csvData) {
       });
     });
 }
-spinner.succeed();
-
-console.log("Done!");
+spinner.succeed("Data loaded successfully!");

@@ -12,22 +12,43 @@ import {
   Tabs,
   useRadioGroup,
   createStandaloneToast,
+  useDisclosure,
 } from "@chakra-ui/react";
 
+import type { NextPage, GetServerSideProps } from "next";
+import axios from "axios";
 import { NFCDevice } from "@/lib/device";
 import RCS300 from "@/lib/devices/rcs300";
+import { Status, getStatusType } from "@/lib/status";
 import { useEffect, useRef, useState } from "react";
 import { sleep } from "@/lib/asyncUtils";
 import { RadioButton } from "./radioButton";
+import { SpinnerOverlay } from "./spinnerOverlay";
 
 enum TABS_INDEX {
   Uninitialized,
   Initialized,
 }
 
+type CSRFToken = string;
+type POSTStatusResponse = {
+  id: number;
+  memberId: number;
+  status: number;
+  createdAt: Date;
+  member: {
+    id: number;
+    studentId: string;
+    year: number;
+    name: string;
+    englishOk: boolean;
+    createdAt: Date;
+  };
+};
+
 const stats = [
-  { name: "enter", mainText: "入室", subText: "Enter", statusId: 1 },
-  { name: "exit", mainText: "退室", subText: "Exit", statusId: 0 },
+  { name: "Entered", mainText: "入室", subText: "Enter" },
+  { name: "Exited", mainText: "退室", subText: "Exit" },
 ];
 
 const deviceFilters = [
@@ -52,11 +73,12 @@ const getNFCDeviceInstance = (productId: number): NFCDevice | null => {
 
 const { ToastContainer, toast } = createStandaloneToast();
 
-export const StudentCardReader = () => {
-  const currentMode = useRef("enter");
+export const StudentCardReader = ({ csrfToken }: { csrfToken: CSRFToken }) => {
+  const currentMode = useRef("Entered");
   const [tabIndex, setTabIndex] = useState(TABS_INDEX.Uninitialized);
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const { value, getRadioProps, getRootProps } = useRadioGroup({
-    defaultValue: "enter",
+    defaultValue: "Entered",
     onChange: (value) => {
       currentMode.current = value;
     },
@@ -96,14 +118,63 @@ export const StudentCardReader = () => {
       for (;;) {
         await nfcDevice.session(device).then((result) => {
           if (result.success && result.studentCard) {
+            const studentId = result.studentCard.studentId;
+
             console.log(result);
-            if (result.studentCard.studentId !== prevStudentId) {
-              toast({
-                title: "学生証を読み取りました",
-                description: `学籍番号: ${result.studentCard.studentId}, current: ${currentMode.current}`,
-                status: "success",
-                position: "top",
-              });
+            if (studentId !== prevStudentId) {
+              onOpen();
+
+              axios
+                .post(
+                  `/api/members/${studentId}/status`,
+                  {
+                    status: currentMode.current,
+                  },
+                  {
+                    headers: {
+                      "x-csrf-token": csrfToken,
+                    },
+                  },
+                )
+                .then((res) => {
+                  switch (res.status) {
+                    case 200: {
+                      const resJson: POSTStatusResponse = res.data;
+                      toast({
+                        title: "学生証を読み取りました",
+                        description: `${resJson.member.name} さん、${
+                          currentMode.current === "Exited"
+                            ? "行ってらっしゃい！"
+                            : "おかえりなさい！"
+                        }`,
+                        status: "success",
+                        position: "top",
+                      });
+                      break;
+                    }
+                    case 400: {
+                      toast({
+                        title: "リクエストエラーが発生しました",
+                        description: res.data,
+                        status: "error",
+                        position: "top",
+                      });
+                      break;
+                    }
+                    case 500: {
+                      toast({
+                        title: "サーバーエラーが発生しました",
+                        description: res.data,
+                        status: "error",
+                        position: "top",
+                      });
+                      break;
+                    }
+                  }
+                })
+                .finally(() => {
+                  onClose();
+                });
             }
             prevStudentId = result.studentCard.studentId;
           } else {
@@ -159,6 +230,7 @@ export const StudentCardReader = () => {
         </AbsoluteCenter>
       </Box>
       <ToastContainer />
+      <SpinnerOverlay in={isOpen} />
     </>
   );
 };

@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 
 const csrfProtect = csrf({
   cookie: {
+    name: process.env.CSRF_SECRET,
     secure: process.env.NODE_ENV === "production",
   },
 });
@@ -18,8 +19,4 @@ export async function middleware(req: NextRequest) {
   }
 
   return res;
-}
-
-export const config = {
-  matcher: "/api/:path*",
 }

@@ -20,6 +20,7 @@
     "@types/w3c-web-usb": "^1.0.8",
     "csv": "^6.3.5",
     "eastasianwidth": "^0.2.0",
+    "edge-csrf": "^1.0.6-rc1",
     "framer-motion": "^10.16.4",
     "inquirer": "^9.2.11",
     "next": "13.5.4",

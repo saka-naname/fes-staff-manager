@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Group {
+  id        Int       @id @default(autoincrement())
+  name      String    
+  members   Member[]
+  isMajor   Boolean?
+}
+
+model Member {
+  id        Int       @id @default(autoincrement())
+  studentId String    @unique
+  year      Int
+  name      String
+  groups    Group[]
+  stats     Status[]  
+  englishOk Boolean
+  createdAt DateTime  @default(now())
+}
+
+model Status {
+  id        Int       @id @default(autoincrement())
+  member    Member    @relation(fields: [memberId], references: [id])
+  memberId  Int
+  status    Int
+  createdAt DateTime  @default(now())
+}

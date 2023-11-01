@@ -19,6 +19,7 @@
     "@prisma/client": "^5.4.2",
     "@types/w3c-web-usb": "^1.0.8",
     "axios": "^1.6.0",
+    "bufferutil": "^4.0.8",
     "csv": "^6.3.5",
     "eastasianwidth": "^0.2.0",
     "edge-csrf": "^1.0.6-rc1",
@@ -29,7 +30,9 @@
     "react": "^18",
     "react-dom": "^18",
     "socket.io": "^4.7.2",
-    "socket.io-client": "^4.7.2"
+    "socket.io-client": "^4.7.2",
+    "utf-8-validate": "^5.0.10",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.5.4",

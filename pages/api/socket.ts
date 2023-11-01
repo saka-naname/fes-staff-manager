@@ -32,7 +32,8 @@ export default function handler(
   const io = new Server(res.socket.server, { addTrailingSlash: false });
   io.on("connection", (socket: Socket) => {
     socket.on("disconnect", () => console.log("disconnected"));
-    socket.emit("msg", "hello, from server!");
+    socket.emit("msg", "Connected!");
+
   });
   res.socket.server.io = io;
 

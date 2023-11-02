@@ -55,7 +55,12 @@ export async function POST(request: Request, { params }: { params: { studentId: 
         }
       },
       include: {
-        member: true
+        member: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
       }
     })
   } catch (e) {

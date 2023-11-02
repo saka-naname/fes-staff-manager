@@ -37,11 +37,7 @@ type POSTStatusResponse = {
   createdAt: Date;
   member: {
     id: number;
-    studentId: string;
-    year: number;
     name: string;
-    englishOk: boolean;
-    createdAt: Date;
   };
 };
 

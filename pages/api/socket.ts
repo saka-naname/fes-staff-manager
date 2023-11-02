@@ -6,7 +6,7 @@ import type { Server as HttpServer } from "http";
 import type { Server as IOServer } from "socket.io";
 import type { Socket } from "socket.io";
 import { sha256 } from "js-sha256";
-import { StatusWithMember } from "@/lib/types";
+import { Status } from "@prisma/client";
 
 interface SocketServer extends HttpServer {
   io?: IOServer;
@@ -18,6 +18,13 @@ interface SocketServerWithIO extends NetSocket {
 
 interface ResponseWithSocket extends NextApiResponse {
   socket: SocketServerWithIO;
+}
+
+type SocketStatusIORequest = Status & {
+  member: {
+    id: number,
+    name: string,
+  }
 }
 
 const socket_secret = process.env.SOCKET_SECRET;
@@ -39,14 +46,14 @@ export default function handler(
     socket.emit("msg", "Connected!");
     socket.emit("token", generateToken(socket));
 
-    socket.on("member_enter", (status: StatusWithMember, token: string) => {
+    socket.on("member_enter", (status: SocketStatusIORequest, token: string) => {
       if (auth(socket, token)) {
         io.emit("member_entered", status.member.id);
       } else {
         socket.emit("msg", "Unauthorized");
       }
     });
-    socket.on("member_exit", (status: StatusWithMember, token: string) => {
+    socket.on("member_exit", (status: SocketStatusIORequest, token: string) => {
       if (auth(socket, token)) {
         io.emit("member_exited", status.member.id);
       } else {

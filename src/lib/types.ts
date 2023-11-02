@@ -1,19 +1,23 @@
-import { Group, Member, Status } from "@prisma/client";
+import { Group, Status } from "@prisma/client";
 
-type GroupWithMembers = Group & {
-  members: Member[],
+type MemberSafe = {
+  id: number,
+  year: number,
+  name: string,
+  englishOk: boolean,
+  createdAt: Date,
 }
 
-type MemberWithStatuses = Member & {
+type GroupWithMembersSafe = Group & {
+  members: MemberSafe[],
+}
+
+type MemberWithStatusesSafe = MemberSafe & {
   stats: Status[],
 }
 
-type GroupWithMembersWithStatuses = Group & {
-  members: MemberWithStatuses[],
+type GroupWithMembersWithStatusesSafe = Group & {
+  members: MemberWithStatusesSafe[],
 }
 
-type StatusWithMember = Status & {
-  member: Member,
-}
-
-export type { GroupWithMembers, MemberWithStatuses, GroupWithMembersWithStatuses, StatusWithMember };
+export type { MemberSafe, GroupWithMembersSafe, MemberWithStatusesSafe, GroupWithMembersWithStatusesSafe };

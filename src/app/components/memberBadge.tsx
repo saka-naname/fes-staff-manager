@@ -1,8 +1,8 @@
+import { MemberSafe } from "@/lib/types";
 import { Badge } from "@chakra-ui/react";
-import { Member } from "@prisma/client";
 
 type MemberBadgeProps = {
-  member: Member;
+  member: MemberSafe;
 };
 
 const colorSchemes = [

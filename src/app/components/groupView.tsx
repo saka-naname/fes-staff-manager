@@ -4,14 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { GroupList } from "./groupList";
-import { GroupWithMembersWithStatuses } from "@/lib/types";
+import { GroupWithMembersWithStatusesSafe } from "@/lib/types";
 
 const socket = io({ autoConnect: false });
 
 type CSRFToken = string;
 
 const changeStatus = (
-  items: GroupWithMembersWithStatuses[],
+  items: GroupWithMembersWithStatusesSafe[],
   memberId: number,
   status: number,
 ) => {
@@ -36,12 +36,12 @@ const changeStatus = (
 };
 
 export const GroupView = ({ csrfToken }: { csrfToken: CSRFToken }) => {
-  const [items, setItems] = useState([] as GroupWithMembersWithStatuses[]);
+  const [items, setItems] = useState([] as GroupWithMembersWithStatusesSafe[]);
   const [target, setTarget] = useState({
     memberId: -1,
     status: -1,
   });
-  const changedStatusRef = useRef<GroupWithMembersWithStatuses[]>();
+  const changedStatusRef = useRef<GroupWithMembersWithStatusesSafe[]>();
 
   useEffect(() => {
     axios

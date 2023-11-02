@@ -1,15 +1,14 @@
 import { Accordion } from "@chakra-ui/react";
 import React from "react";
 import { GroupAccordionItem } from "./groupAccordionItem";
-import type { GroupWithMembersWithStatuses } from "@/lib/types";
-import { Member } from "@prisma/client";
+import type { GroupWithMembersWithStatusesSafe, MemberSafe } from "@/lib/types";
 
 type GroupListProps = {
-  groups: GroupWithMembersWithStatuses[];
+  groups: GroupWithMembersWithStatusesSafe[];
 };
 
-const getUniqueMembers = (members: Member[]): Member[] => {
-  const unique: Member[] = [];
+const getUniqueMembers = (members: MemberSafe[]): MemberSafe[] => {
+  const unique: MemberSafe[] = [];
   const ids: number[] = [];
 
   for (const member of members) {

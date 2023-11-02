@@ -1,13 +1,21 @@
-import { GroupWithMembers } from "@/lib/types";
+import { GroupWithMembersSafe } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  let groups: GroupWithMembers[];
+  let groups: GroupWithMembersSafe[];
   try {
     groups = await prisma.group.findMany({
       include: {
         members: {
+          select: {
+            id: true,
+            name: true,
+            year: true,
+            stats: true,
+            englishOk: true,
+            createdAt: true,
+          },
           orderBy: {
             year: "desc",
           },

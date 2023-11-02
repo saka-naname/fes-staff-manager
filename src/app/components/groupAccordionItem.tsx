@@ -11,11 +11,11 @@ import {
 } from "@chakra-ui/react";
 import { MemberBadge } from "./memberBadge";
 import React from "react";
-import { Member } from "@prisma/client";
+import { MemberSafe } from "@/lib/types";
 
 type GroupAccordionItemProps = {
   name: string;
-  members: Member[];
+  members: MemberSafe[];
 };
 
 export const GroupAccordionItem = React.memo(function GroupAccordionItem(

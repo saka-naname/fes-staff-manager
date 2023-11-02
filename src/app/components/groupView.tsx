@@ -5,6 +5,8 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { GroupList } from "./groupList";
 import { GroupWithMembersWithStatusesSafe } from "@/lib/types";
+import { SpinnerOverlay } from "./spinnerOverlay";
+import { useDisclosure } from "@chakra-ui/react";
 
 const socket = io({ autoConnect: false });
 
@@ -47,6 +49,9 @@ export const GroupView = ({ csrfToken }: { csrfToken: CSRFToken }) => {
     >();
   const memberIdRef = useRef<number>(-1);
   const itemsRef = useRef<GroupWithMembersWithStatusesSafe[]>([]);
+  const { isOpen, onClose } = useDisclosure({
+    defaultIsOpen: true,
+  });
 
   useEffect(() => {
     changeStatusRef.current = changeStatus;
@@ -113,6 +118,9 @@ export const GroupView = ({ csrfToken }: { csrfToken: CSRFToken }) => {
           memberIdRef.current = id;
           exitedHandler();
         });
+      })
+      .finally(() => {
+        onClose();
       });
 
     return () => {
@@ -123,5 +131,10 @@ export const GroupView = ({ csrfToken }: { csrfToken: CSRFToken }) => {
     };
   }, []);
 
-  return <GroupList groups={items} />;
+  return (
+    <>
+      <GroupList groups={items} />
+      <SpinnerOverlay in={isOpen} />
+    </>
+  );
 };

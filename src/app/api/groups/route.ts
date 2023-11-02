@@ -8,6 +8,13 @@ export async function GET() {
     groups = await prisma.group.findMany({
       include: {
         members: {
+          select: {
+            id: true,
+            name: true,
+            year: true,
+            englishOk: true,
+            createdAt: true,
+          },
           orderBy: {
             year: "desc"
           }

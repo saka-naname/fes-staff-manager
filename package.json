@@ -25,6 +25,7 @@
     "edge-csrf": "^1.0.6-rc1",
     "framer-motion": "^10.16.4",
     "inquirer": "^9.2.11",
+    "js-sha256": "^0.10.1",
     "next": "13.5.4",
     "ora": "^7.0.1",
     "react": "^18",

@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 
 import type { NextPage, GetServerSideProps } from "next";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { NFCDevice } from "@/lib/device";
 import RCS300 from "@/lib/devices/rcs300";
 import { Status, getStatusType } from "@/lib/status";
@@ -24,6 +24,8 @@ import { useEffect, useRef, useState } from "react";
 import { sleep } from "@/lib/asyncUtils";
 import { RadioButton } from "./radioButton";
 import { SpinnerOverlay } from "./spinnerOverlay";
+import { io } from "socket.io-client";
+import { cookies } from "next/headers";
 
 enum TABS_INDEX {
   Uninitialized,
@@ -45,6 +47,10 @@ type POSTStatusResponse = {
     createdAt: Date;
   };
 };
+
+const socket = io({
+  autoConnect: false,
+});
 
 const stats = [
   { name: "Entered", mainText: "入室", subText: "Enter" },
@@ -76,6 +82,7 @@ const { ToastContainer, toast } = createStandaloneToast();
 export const StudentCardReader = ({ csrfToken }: { csrfToken: CSRFToken }) => {
   const currentMode = useRef("Entered");
   const [tabIndex, setTabIndex] = useState(TABS_INDEX.Uninitialized);
+  const socketToken = useRef("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { value, getRadioProps, getRootProps } = useRadioGroup({
     defaultValue: "Entered",
@@ -83,6 +90,41 @@ export const StudentCardReader = ({ csrfToken }: { csrfToken: CSRFToken }) => {
       currentMode.current = value;
     },
   });
+
+  useEffect(() => {
+    axios
+      .post("/api/socket", "", {
+        headers: {
+          "X-CSRF-Token": csrfToken,
+        },
+      })
+      .then(() => {
+        if (socket.connected) {
+          return;
+        }
+        socket.connect();
+
+        socket.on("connect", () => {
+          toast({
+            title: "WebSocket接続完了",
+            status: "info",
+            position: "top",
+          });
+        });
+        socket.on("msg", (msg) => {
+          console.log(msg);
+        });
+        socket.on("token", (token: string) => {
+          socketToken.current = token;
+        });
+      });
+
+    return () => {
+      socket.off("connect");
+      socket.off("msg");
+      socket.off("token");
+    };
+  }, []);
 
   const session = async (device: USBDevice) => {
     let nfcDevice: NFCDevice;
@@ -150,6 +192,22 @@ export const StudentCardReader = ({ csrfToken }: { csrfToken: CSRFToken }) => {
                         status: "success",
                         position: "top",
                       });
+                      switch (currentMode.current) {
+                        case "Entered":
+                          socket.emit(
+                            "member_enter",
+                            res.data,
+                            socketToken.current,
+                          );
+                          break;
+                        case "Exited":
+                          socket.emit(
+                            "member_exit",
+                            res.data,
+                            socketToken.current,
+                          );
+                          break;
+                      }
                       break;
                     }
                     case 400: {
@@ -170,6 +228,16 @@ export const StudentCardReader = ({ csrfToken }: { csrfToken: CSRFToken }) => {
                       });
                       break;
                     }
+                  }
+                })
+                .catch((e: AxiosError) => {
+                  if (e.status === 400) {
+                    toast({
+                      title: "リクエストエラーが発生しました",
+                      description: e.message,
+                      status: "error",
+                      position: "top",
+                    });
                   }
                 })
                 .finally(() => {

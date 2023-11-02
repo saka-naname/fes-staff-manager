@@ -12,4 +12,8 @@ type GroupWithMembersWithStatuses = Group & {
   members: MemberWithStatuses[],
 }
 
-export type { GroupWithMembers, MemberWithStatuses, GroupWithMembersWithStatuses };
+type StatusWithMember = Status & {
+  member: Member,
+}
+
+export type { GroupWithMembers, MemberWithStatuses, GroupWithMembersWithStatuses, StatusWithMember };

@@ -6,6 +6,7 @@ const csrfProtect = csrf({
   cookie: {
     name: process.env.CSRF_SECRET,
     secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
   },
 });
 
@@ -31,6 +32,7 @@ export async function middleware(req: NextRequest) {
         user === process.env.BASIC_AUTH_NAME &&
         pwd === process.env.BASIC_AUTH_PASSWORD
       ) {
+        res.cookies.set("socket_secret", process.env.SOCKET_SECRET!);
         return res;
       } else {
         return NextResponse.json(

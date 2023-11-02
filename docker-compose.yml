@@ -7,11 +7,11 @@ services:
       - "next_db_data:/var/lib/mysql"
       - "./config/my.conf:/etc/mysql/cond.d/my.cnf"
     environment:
-      - MYSQL_DATABASE: ${DB_DATABASE}
-      - MYSQL_USER: ${DB_USER}
-      - MYSQL_PASSWORD: ${DB_PASSWORD}
-      - MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      - TZ: Asia/Tokyo
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: Asia/Tokyo
     ports:
       - "3306:3306"
 volumes:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { GroupList } from "./groupList";
@@ -37,11 +37,42 @@ const changeStatus = (
 
 export const GroupView = ({ csrfToken }: { csrfToken: CSRFToken }) => {
   const [items, setItems] = useState([] as GroupWithMembersWithStatusesSafe[]);
-  const [target, setTarget] = useState({
-    memberId: -1,
-    status: -1,
-  });
-  const changedStatusRef = useRef<GroupWithMembersWithStatusesSafe[]>();
+  const changeStatusRef =
+    useRef<
+      (
+        items: GroupWithMembersWithStatusesSafe[],
+        memberId: number,
+        status: number,
+      ) => GroupWithMembersWithStatusesSafe[]
+    >();
+  const memberIdRef = useRef<number>(-1);
+  const itemsRef = useRef<GroupWithMembersWithStatusesSafe[]>([]);
+
+  useEffect(() => {
+    changeStatusRef.current = changeStatus;
+  }, [changeStatus]);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  const enteredHandler = useCallback(() => {
+    const newItems = changeStatusRef.current?.(
+      itemsRef.current,
+      memberIdRef.current,
+      1,
+    );
+    setItems(newItems!);
+  }, []);
+
+  const exitedHandler = useCallback(() => {
+    const newItems = changeStatusRef.current?.(
+      itemsRef.current,
+      memberIdRef.current,
+      0,
+    );
+    setItems(newItems!);
+  }, []);
 
   useEffect(() => {
     axios
@@ -74,13 +105,13 @@ export const GroupView = ({ csrfToken }: { csrfToken: CSRFToken }) => {
         });
         socket.on("member_entered", (id: number) => {
           console.log(id, "entered");
-          setTarget({ memberId: id, status: 1 });
-          console.log(changedStatusRef.current);
+          memberIdRef.current = id;
+          enteredHandler();
         });
         socket.on("member_exited", (id: number) => {
           console.log(id, "exited");
-          setTarget({ memberId: id, status: 0 });
-          console.log(changedStatusRef.current);
+          memberIdRef.current = id;
+          exitedHandler();
         });
       });
 
@@ -91,18 +122,6 @@ export const GroupView = ({ csrfToken }: { csrfToken: CSRFToken }) => {
       socket.off("member_exited");
     };
   }, []);
-
-  useEffect(() => {
-    changedStatusRef.current = changeStatus(
-      items,
-      target.memberId,
-      target.status,
-    );
-  }, [items, target]);
-
-  useEffect(() => {
-    if (changedStatusRef.current) setItems(changedStatusRef.current);
-  }, [changedStatusRef.current]);
 
   return <GroupList groups={items} />;
 };

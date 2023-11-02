@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Member, Prisma } from "@prisma/client";
-import { Status, getStatusType } from "@/lib/status";
+import { Member } from "@prisma/client";
+import { getStatusType } from "@/lib/status";
 
-type CSRFToken = string;
-
-export async function POST(request: Request, { params, csrfToken }: { params: { studentId: string }, csrfToken: CSRFToken }) {
+export async function POST(request: Request, { params }: { params: { studentId: string } }) {
   let req;
   try {
     req = await request.json();
@@ -57,7 +55,12 @@ export async function POST(request: Request, { params, csrfToken }: { params: { 
         }
       },
       include: {
-        member: true
+        member: {
+          select: {
+            id: true,
+            name: true,
+          }
+        }
       }
     })
   } catch (e) {

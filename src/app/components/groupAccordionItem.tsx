@@ -10,13 +10,12 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 import { MemberBadge } from "./memberBadge";
-import { MemberWithStatuses } from "@/lib/types";
 import React from "react";
-import { Member } from "@prisma/client";
+import { MemberSafe } from "@/lib/types";
 
 type GroupAccordionItemProps = {
   name: string;
-  members: Member[];
+  members: MemberSafe[];
 };
 
 export const GroupAccordionItem = React.memo(function GroupAccordionItem(
@@ -45,8 +44,8 @@ export const GroupAccordionItem = React.memo(function GroupAccordionItem(
       </h2>
       <AccordionPanel>
         <Wrap>
-          {members.map((member) => (
-            <WrapItem>
+          {members.map((member, index) => (
+            <WrapItem key={index}>
               <MemberBadge member={member} />
             </WrapItem>
           ))}

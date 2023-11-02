@@ -15,17 +15,14 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 
-import type { NextPage, GetServerSideProps } from "next";
 import axios, { AxiosError } from "axios";
 import { NFCDevice } from "@/lib/device";
 import RCS300 from "@/lib/devices/rcs300";
-import { Status, getStatusType } from "@/lib/status";
 import { useEffect, useRef, useState } from "react";
 import { sleep } from "@/lib/asyncUtils";
 import { RadioButton } from "./radioButton";
 import { SpinnerOverlay } from "./spinnerOverlay";
 import { io } from "socket.io-client";
-import { cookies } from "next/headers";
 
 enum TABS_INDEX {
   Uninitialized,
@@ -84,7 +81,7 @@ export const StudentCardReader = ({ csrfToken }: { csrfToken: CSRFToken }) => {
   const [tabIndex, setTabIndex] = useState(TABS_INDEX.Uninitialized);
   const socketToken = useRef("");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { value, getRadioProps, getRootProps } = useRadioGroup({
+  const { getRadioProps, getRootProps } = useRadioGroup({
     defaultValue: "Entered",
     onChange: (value) => {
       currentMode.current = value;

@@ -5,7 +5,6 @@ import type { Socket as NetSocket } from "net";
 import type { Server as HttpServer } from "http";
 import type { Server as IOServer } from "socket.io";
 import type { Socket } from "socket.io";
-import { Member, Status } from "@prisma/client";
 import { sha256 } from "js-sha256";
 import { StatusWithMember } from "@/lib/types";
 

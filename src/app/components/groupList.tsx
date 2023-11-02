@@ -1,10 +1,7 @@
 import { Accordion } from "@chakra-ui/react";
 import React from "react";
 import { GroupAccordionItem } from "./groupAccordionItem";
-import type {
-  GroupWithMembersWithStatuses,
-  MemberWithStatuses,
-} from "@/lib/types";
+import type { GroupWithMembersWithStatuses } from "@/lib/types";
 import { Member } from "@prisma/client";
 
 type GroupListProps = {

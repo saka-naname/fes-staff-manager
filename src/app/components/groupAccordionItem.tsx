@@ -10,7 +10,6 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 import { MemberBadge } from "./memberBadge";
-import { MemberWithStatuses } from "@/lib/types";
 import React from "react";
 import { Member } from "@prisma/client";
 

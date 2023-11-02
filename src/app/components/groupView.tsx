@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { GroupList } from "./groupList";

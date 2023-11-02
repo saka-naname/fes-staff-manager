@@ -44,8 +44,8 @@ export const GroupAccordionItem = React.memo(function GroupAccordionItem(
       </h2>
       <AccordionPanel>
         <Wrap>
-          {members.map((member) => (
-            <WrapItem>
+          {members.map((member, index) => (
+            <WrapItem key={index}>
               <MemberBadge member={member} />
             </WrapItem>
           ))}

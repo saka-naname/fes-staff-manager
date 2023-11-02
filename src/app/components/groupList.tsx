@@ -22,13 +22,12 @@ const getUniqueMembers = (members: MemberSafe[]): MemberSafe[] => {
 
 export const GroupList = React.memo(function GroupList(props: GroupListProps) {
   const { groups } = props;
-  let index = 0;
 
   return (
     <Accordion allowToggle>
       {groups
         .filter((group) => group.isMajor)
-        .map((group) => {
+        .map((group, index) => {
           return (
             <GroupAccordionItem
               name={group.name}
@@ -36,7 +35,7 @@ export const GroupList = React.memo(function GroupList(props: GroupListProps) {
                 (member) =>
                   member.stats.length === 1 && member.stats[0].status === 1,
               )}
-              key={index++}
+              key={index}
             />
           );
         })}
@@ -52,7 +51,7 @@ export const GroupList = React.memo(function GroupList(props: GroupListProps) {
               );
             }),
         )}
-        key={index++}
+        key={9999}
       />
       <GroupAccordionItem
         name="外出中"
@@ -64,7 +63,7 @@ export const GroupList = React.memo(function GroupList(props: GroupListProps) {
             );
           }),
         )}
-        key={index++}
+        key={10000}
       />
     </Accordion>
   );

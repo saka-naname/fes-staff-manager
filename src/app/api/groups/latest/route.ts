@@ -12,21 +12,18 @@ export async function GET() {
             id: true,
             name: true,
             year: true,
-            stats: true,
+            stats: {
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: 1,
+            },
             englishOk: true,
             createdAt: true,
           },
           orderBy: {
             year: "desc",
           },
-          include: {
-            stats: {
-              orderBy: {
-                createdAt: "desc"
-              },
-              take: 1,
-            }
-          }
         }
       },
       orderBy: {

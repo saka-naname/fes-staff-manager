@@ -51,6 +51,20 @@ export const GroupList = React.memo(function GroupList(props: GroupListProps) {
               );
             }),
         )}
+        key={9998}
+      />
+      <GroupAccordionItem
+        name="英語応対OK"
+        members={getUniqueMembers(
+          groups.flatMap((group) => {
+            return group.members.filter(
+              (member) =>
+                member.stats.length === 1 &&
+                member.stats[0].status === 1 &&
+                member.englishOk,
+            );
+          }),
+        )}
         key={9999}
       />
       <GroupAccordionItem

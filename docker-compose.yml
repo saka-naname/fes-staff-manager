@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:latest
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - "next_db_data:/var/lib/mysql"
+      - "./config/my.conf:/etc/mysql/cond.d/my.cnf"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: Asia/Tokyo
+    ports:
+      - "3306:3306"
+volumes:
+  next_db_data:

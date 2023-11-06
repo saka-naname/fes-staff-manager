@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:latest
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - "next_db_data:/var/lib/mysql"
+      - "./config/my.conf:/etc/mysql/conf.d/my.cnf"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: Asia/Tokyo
+    networks:
+      - fes_staff_manager
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm start
+    environment:
+      DATABASE_URL: mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_DATABASE}
+    networks:
+      - fes_staff_manager
+  tunnel:
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    networks:
+      - fes_staff_manager
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+volumes:
+  next_db_data:
+networks:
+  fes_staff_manager:
+    driver: bridge
